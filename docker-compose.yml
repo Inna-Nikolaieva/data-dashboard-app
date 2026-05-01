@@ -1,0 +1,47 @@
+version: '3'
+
+services:
+
+  postgres:
+    image: postgres:18.0-alpine
+    restart: always
+    ports:
+      - "5432:5432"
+    env_file:
+      - ./backend/.env.docker
+    volumes:
+      - postgres_data:/var/lib/postgresql/data/
+    networks:
+      - dashboard-docker-network
+
+  backend:
+    build: ./backend
+    image: backend-image
+    ports:
+      - "127.0.0.1:5001:5001"
+    volumes:
+      - ./backend:/backend
+    env_file:
+      - ./backend/.env
+    depends_on:
+      - postgres
+    networks:
+      - dashboard-docker-network
+
+  frontend:
+    build: ./frontend
+    ports:
+      - "5173:5173"
+    env_file:
+      - ./frontend/.env
+    depends_on:
+      - backend
+    networks:
+      - dashboard-docker-network
+
+volumes:
+  postgres_data:
+
+networks:
+  dashboard-docker-network:
+    driver: bridge
